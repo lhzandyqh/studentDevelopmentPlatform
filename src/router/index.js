@@ -159,8 +159,8 @@ export const asyncRoutes = [
     alwaysShow: true, // will always show the root menu
     meta: {
       title: '学籍管理',
-      icon: 'documentation',
-      roles: ['admin', 'editor'] // you can set roles in root nav
+      icon: 'documentation'
+      // roles: ['admin', 'editor'] // you can set roles in root nav
     },
     children: [
       {
