@@ -72,9 +72,10 @@ export const constantRoutes = [
     children: [
       {
         path: 'dashboard',
-        component: () => import('@/myviews/homePage/index'),
+        component: () => import('@/myviews/learningCareerPlanning/index'),
+        // component: () => import('@/views/dashboard/index'),
         name: 'Dashboard',
-        meta: { title: 'dashboard', icon: 'dashboard', noCache: true, affix: true }
+        meta: { title: '学涯规划', icon: 'form', noCache: true, affix: true }
       }
     ]
   }
@@ -335,15 +336,15 @@ export const asyncRoutes = [
       // roles: ['admin', 'editor'] // you can set roles in root nav
     },
     children: [
-      {
-        path: 'communityManagement',
-        component: () => import('@/myviews/schoolLife/communityManagement'),
-        name: 'communityManagement',
-        meta: {
-          title: '社团管理'
-          // roles: ['admin'] // or you can only set roles in sub nav
-        }
-      },
+      // {
+      //   path: 'communityManagement',
+      //   component: () => import('@/myviews/schoolLife/communityManagement'),
+      //   name: 'communityManagement',
+      //   meta: {
+      //     title: '社团管理'
+      //     // roles: ['admin'] // or you can only set roles in sub nav
+      //   }
+      // },
       {
         path: 'campusActivities',
         component: () => import('@/myviews/schoolLife/campusActivities'),
@@ -355,18 +356,18 @@ export const asyncRoutes = [
       }
     ]
   },
-  {
-    path: '/learningCareerPlanning',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/myviews/learningCareerPlanning/index'),
-        name: 'learningCareerPlanning',
-        meta: { title: '学涯规划', icon: 'form', noCache: true }
-      }
-    ]
-  },
+  // {
+  //   path: '/learningCareerPlanning',
+  //   component: Layout,
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/myviews/learningCareerPlanning/index'),
+  //       name: 'learningCareerPlanning',
+  //       meta: { title: '学涯规划', icon: 'form', noCache: true }
+  //     }
+  //   ]
+  // },
   // {
   //   path: '/icon',
   //   component: Layout,
