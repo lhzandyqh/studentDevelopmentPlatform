@@ -198,7 +198,7 @@ export const asyncRoutes = [
     redirect: '/courseSelectionSystem/index',
     alwaysShow: true, // will always show the root menu
     meta: {
-      title: '选课系统',
+      title: '我的课程',
       icon: 'kecheng'
       // roles: ['admin', 'editor'] // you can set roles in root nav
     },
@@ -212,15 +212,15 @@ export const asyncRoutes = [
           // roles: ['admin'] // or you can only set roles in sub nav
         }
       },
-      {
-        path: 'campusLectures',
-        component: () => import('@/myviews/courseSelectionSystem/campusLectures'),
-        name: 'campusLectures',
-        meta: {
-          title: '校园讲座'
-          // if do not set roles, means: this page does not require permission
-        }
-      },
+      // {
+      //   path: 'campusLectures',
+      //   component: () => import('@/myviews/courseSelectionSystem/campusLectures'),
+      //   name: 'campusLectures',
+      //   meta: {
+      //     title: '校园讲座'
+      //     // if do not set roles, means: this page does not require permission
+      //   }
+      // },
       {
         path: 'mySchedule',
         component: () => import('@/myviews/courseSelectionSystem/mySchedule'),
@@ -236,6 +236,90 @@ export const asyncRoutes = [
         meta: {
           title: '成绩查询'
         }
+      }
+    ]
+  },
+  {
+    path: '/secondClassroom',
+    component: Layout,
+    redirect: '/secondClassroom/index',
+    alwaysShow: true, // will always show the root menu
+    meta: {
+      title: '第二课堂',
+      icon: 'component'
+      // roles: ['admin', 'editor'] // you can set roles in root nav
+    },
+    children: [
+      // {
+      //   path: 'internshipPractice',
+      //   component: () => import('@/myviews/secondClassroom/internshipPractice'),
+      //   name: 'internshipPractice',
+      //   meta: {
+      //     title: '实习实践'
+      //     // roles: ['admin'] // or you can only set roles in sub nav
+      //   }
+      // },
+      {
+        path: 'internshipFeedback',
+        component: () => import('@/myviews/secondClassroom/internshipFeedback'),
+        name: 'internshipFeedback',
+        meta: {
+          title: '实习反馈'
+          // roles: ['admin'] // or you can only set roles in sub nav
+        }
+      },
+      {
+        path: 'professionalCertificate',
+        component: () => import('@/myviews/secondClassroom/professionalCertificate'),
+        name: 'professionalCertificate',
+        meta: {
+          title: '职业证书'
+          // if do not set roles, means: this page does not require permission
+        }
+      },
+      {
+        path: 'comprehensiveEvaluation',
+        component: () => import('@/myviews/secondClassroom/comprehensiveEvaluation'),
+        name: 'comprehensiveEvaluation',
+        meta: {
+          title: '综合测评'
+        }
+      }
+    ]
+  },
+  // {
+  //   path: '/askleavemanagement',
+  //   component: Layout,
+  //   alwaysShow: true, // will always show the root menu
+  //   meta: {
+  //     title: '请假管理',
+  //     icon: 'example',
+  //     roles: ['admin', 'editor'] // you can set roles in root nav
+  //   },
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/myviews/leaveManagement/index'),
+  //       name: 'askleavemanagement',
+  //       meta: { title: '请假申请', noCache: true }
+  //     },
+  //     {
+  //       path: 'history',
+  //       component: () => import('@/myviews/leaveManagement/leaveHistory'),
+  //       name: 'leavehistory',
+  //       meta: { title: '请假历史', noCache: true }
+  //     }
+  //   ]
+  // },
+  {
+    path: '/askleavemanagement',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/myviews/leaveManagement/index'),
+        name: 'askleavemanagement',
+        meta: { title: '请假管理', icon: 'example', noCache: true }
       }
     ]
   },
@@ -287,45 +371,6 @@ export const asyncRoutes = [
     ]
   },
   {
-    path: '/secondClassroom',
-    component: Layout,
-    redirect: '/secondClassroom/index',
-    alwaysShow: true, // will always show the root menu
-    meta: {
-      title: '第二课堂',
-      icon: 'component'
-      // roles: ['admin', 'editor'] // you can set roles in root nav
-    },
-    children: [
-      {
-        path: 'internshipPractice',
-        component: () => import('@/myviews/secondClassroom/internshipPractice'),
-        name: 'internshipPractice',
-        meta: {
-          title: '实习实践'
-          // roles: ['admin'] // or you can only set roles in sub nav
-        }
-      },
-      {
-        path: 'professionalCertificate',
-        component: () => import('@/myviews/secondClassroom/professionalCertificate'),
-        name: 'professionalCertificate',
-        meta: {
-          title: '职业证书'
-          // if do not set roles, means: this page does not require permission
-        }
-      },
-      {
-        path: 'comprehensiveEvaluation',
-        component: () => import('@/myviews/secondClassroom/comprehensiveEvaluation'),
-        name: 'comprehensiveEvaluation',
-        meta: {
-          title: '综合测评'
-        }
-      }
-    ]
-  },
-  {
     path: '/schoolLife',
     component: Layout,
     redirect: '/schoolLife/index',
@@ -353,9 +398,42 @@ export const asyncRoutes = [
           title: '校园活动'
           // if do not set roles, means: this page does not require permission
         }
+      },
+      {
+        path: 'campusLectures',
+        component: () => import('@/myviews/courseSelectionSystem/campusLectures'),
+        name: 'campusLectures',
+        meta: {
+          title: '校园讲座'
+          // if do not set roles, means: this page does not require permission
+        }
       }
     ]
   },
+  {
+    path: '/graduationFeedback',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/myviews/graduationFeedback/index'),
+        name: 'graduationFeedback',
+        meta: { title: '毕业反馈', icon: 'example', noCache: true }
+      }
+    ]
+  },
+  // {
+  //   path: '/icon',
+  //   component: Layout,
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/views/svg-icons/index'),
+  //       name: 'Icons',
+  //       meta: { title: 'icons', icon: 'icon', noCache: true }
+  //     }
+  //   ]
+  // },
   // {
   //   path: '/learningCareerPlanning',
   //   component: Layout,

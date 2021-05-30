@@ -10,47 +10,47 @@
     </el-row>
     <el-divider />
     <el-table
-      :data="tableData"
+      :data="tableData.slice((currentPage4-1)*pagesize,currentPage4*pagesize)"
       stripe
       style="width: 100%"
     >
       <el-table-column
-        prop="zcbh"
+        prop="registerNo"
         label="注册编号"
       />
       <el-table-column
-        prop="zcr"
+        prop="registerPerson"
         label="注册人"
       />
       <el-table-column
-        prop="zcrq"
+        prop="registerDate"
         label="注册日期"
       />
       <el-table-column
-        prop="zcxn"
+        prop="registerYear"
         label="注册学年"
       />
       <el-table-column
-        prop="zcxq"
+        prop="registerTerm"
         label="注册学期"
       />
       <el-table-column
-        prop="xy"
+        prop="college"
         label="学院"
       />
       <el-table-column align="center" label="审核状态">
         <template slot-scope="scope">
-          <el-tag v-if="scope.row.zhuangtai === 1" type="success">审核通过</el-tag>
-          <el-tag v-if="scope.row.zhuangtai === 2" type="warning">暂未审核</el-tag>
-          <el-tag v-if="scope.row.zhuangtai === 3" type="danger">审核未通过</el-tag>
+          <el-tag v-if="scope.row.auditStatus === '审核通过'" type="success">审核通过</el-tag>
+          <el-tag v-if="scope.row.auditStatus === '待审核'" type="warning">暂未审核</el-tag>
+          <el-tag v-if="scope.row.auditStatus === '审核未通过' " type="danger">审核未通过</el-tag>
         </template>
       </el-table-column>
     </el-table>
     <div class="fenye">
       <el-pagination
-        :current-page="currentPage"
+        :current-page="currentPage4"
         :page-sizes="[5, 10, 20, 30]"
-        :page-size="5"
+        :page-size="10"
         style="margin-top:20px;"
         :total="tableData.length"
         layout="total, sizes, prev, pager, next, jumper"
@@ -68,19 +68,19 @@
         <el-row>
           <el-form ref="ktxmform" :model="myform" label-width="200px">
             <el-form-item label="注册人" style="width: 400px">
-              <el-input v-model="myform.name" />
+              <el-input v-model="myform.registerPerson" />
             </el-form-item>
             <el-form-item label="所在学院" style="width: 400px">
-              <el-input v-model="myform.xueyuan" />
+              <el-input v-model="myform.college" />
             </el-form-item>
             <el-form-item label="注册学期">
-              <el-select v-model="myform.xueqi" placeholder="请选择注册学期">
+              <el-select v-model="myform.registerTerm" placeholder="请选择注册学期">
                 <el-option label="秋季学期" value="秋季学期" />
                 <el-option label="春季学期" value="春季学期" />
               </el-select>
             </el-form-item>
             <el-form-item label="注册学年">
-              <el-select v-model="myform.xuenian" placeholder="请选择注册学期">
+              <el-select v-model="myform.registerYear" placeholder="请选择注册学期">
                 <el-option label="大一" value="大一" />
                 <el-option label="大二" value="大二" />
                 <el-option label="大三" value="大三" />
@@ -88,16 +88,18 @@
             </el-form-item>
             <el-form-item label="注册日期" style="width: 400px">
               <el-date-picker
-                v-model="myform.riqi"
+                v-model="myform.registerDate"
                 type="date"
                 placeholder="选择日期"
+                format="yyyy-MM-dd"
+                value-format="yyyy-MM-dd"
               />
             </el-form-item>
           </el-form>
         </el-row>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogVisible = false">注 册</el-button>
+          <el-button type="primary" @click="beginRes">注 册</el-button>
         </span>
       </el-dialog>
     </div>
@@ -105,56 +107,85 @@
 </template>
 
 <script>
+import { getRegisterInfo, beginTermRegister } from '@/api/studentStatusInformation'
 export default {
   name: 'SemesterEnrollment',
   data() {
     return {
       dialogVisible: false,
-      myform: {},
-      tableData: [{
-        zcbh: '0201011',
-        zcr: '王小明',
-        zcrq: '2018-09-01',
-        zcxn: '大一',
-        xy: '护理学院',
-        zcxq: '秋季学期',
-        zhuangtai: 1
-      }, {
-        zcbh: '0201012',
-        zcr: '王小明',
-        zcxn: '大一',
-        zcrq: '2019-02-01',
-        xy: '护理学院',
-        zcxq: '春季学期',
-        zhuangtai: 1
-      }, {
-        zcbh: '0201013',
-        zcr: '王小明',
-        zcxn: '大二',
-        zcrq: '2019-09-01',
-        xy: '护理学院',
-        zcxq: '秋季学期',
-        zhuangtai: 1
-      }, {
-        zcbh: '0201014',
-        zcr: '王小明',
-        zcxn: '大二',
-        zcrq: '2020-02-01',
-        xy: '护理学院',
-        zcxq: '春季学期',
-        zhuangtai: 1
-      }, {
-        zcbh: '0201015',
-        zcr: '王小明',
-        zcxn: '大一',
-        zcrq: '2020-10-01',
-        xy: '护理学院',
-        zcxq: '秋季学期',
-        zhuangtai: 2
-      }]
+      pagesize: '10',
+      currentPage4: 1,
+      myform: {
+        username: localStorage.getItem('jwt'),
+        registerPerson: '',
+        college: '',
+        registerTerm: '',
+        registerYear: '',
+        registerDate: ''
+      },
+      tableData: []
     }
   },
+  mounted() {
+    this.getRegData()
+  },
   methods: {
+    getRegData: function() {
+      const prams = {
+        username: localStorage.getItem('jwt')
+      }
+      getRegisterInfo(prams).then(response => {
+        console.log('测试注册信息')
+        console.log(response.data)
+        this.tableData = response.data.data
+      })
+    },
+    beginRes: function() {
+      var flag = true
+      for (const i in this.myform) {
+        if (this.myform[i] === '') {
+          flag = false
+        }
+      }
+      if (flag) {
+        this.dialogVisible = false
+        // const prmas = {
+        //   sTermRegisterDto: this.myform
+        // }
+        var sTermRegisterDto = this.myform
+        // console.log(prmas)
+        console.log(sTermRegisterDto)
+        beginTermRegister(sTermRegisterDto).then(response => {
+          console.log('测试注册')
+          console.log(response.data)
+          this.getRegData()
+          for (const i in this.myform) {
+            this.myform[i] = ''
+          }
+          this.$message({
+            message: '提交成功',
+            type: 'success'
+          })
+        })
+      } else {
+        this.$message({
+          message: '注册信息未填写完整',
+          type: 'warning'
+        })
+      }
+      // this.dialogVisible = false
+      // // const prmas = {
+      // //   sTermRegisterDto: this.myform
+      // // }
+      // var sTermRegisterDto = this.myform
+      // // console.log(prmas)
+      // console.log(sTermRegisterDto)
+      // beginTermRegister(sTermRegisterDto).then(response => {
+      //   console.log('测试注册')
+      //   console.log(response.data)
+      //   this.getRegData()
+      // })
+    },
     handleClose(done) {
       this.myform = {}
       this.$confirm('确认关闭？')
@@ -162,6 +193,14 @@ export default {
           done()
         })
         .catch(_ => {})
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`)
+      this.pagesize = val
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`)
+      this.currentPage4 = val
     },
     openThisDialog: function() {
       this.dialogVisible = true

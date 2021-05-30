@@ -35,34 +35,30 @@
     </el-row>
     <el-divider />
     <el-table
-      :data="tableDataTea"
+      :data="tableDataTea.slice((currentPage-1)*pageSize,currentPage*pageSize)"
       stripe
       style="width: 100%"
     >
       <el-table-column
-        prop="xh"
-        label="序号"
+        prop="id"
+        label="编号"
         width="50"
       />
       <el-table-column
-        prop="jxmc"
+        prop="scholarship_name"
         label="奖项名称"
       />
       <el-table-column
-        prop="nd"
+        prop="apply_year"
         label="年度"
       />
       <el-table-column
-        prop="jb"
+        prop="scholarship_level"
         label="级别"
       />
       <el-table-column
-        prop="zt"
+        prop="scholarship_status"
         label="状态"
-      />
-      <el-table-column
-        prop="psfs"
-        label="评审方式"
       />
       <el-table-column align="center" label="操作">
         <template slot-scope="scope">
@@ -142,7 +138,7 @@
           <el-form ref="ktxmform" :model="myform" label-width="200px">
             <el-form-item label="具体原因">
               <el-input
-                v-model="myform.textarea"
+                v-model="myform.reason"
                 type="textarea"
                 :rows="5"
                 placeholder="请输入具体原因"
@@ -152,6 +148,7 @@
               <el-upload
                 class="upload-demo"
                 action="https://jsonplaceholder.typicode.com/posts/"
+                :http-request="uploadFiles"
                 :on-preview="handlePreview"
                 :on-remove="handleRemove"
                 :before-remove="beforeRemove"
@@ -168,18 +165,32 @@
         </el-row>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogVisible = false">提 交 申 请</el-button>
+          <el-button type="primary" @click="confirmApply">提 交 申 请</el-button>
         </span>
       </el-dialog>
     </div>
+    <el-dialog
+      title="申请要求"
+      :visible.sync="dialogVisibleTwo"
+      width="50%"
+      :before-close="handleClose"
+    >
+      <p>{{ applyRequirements }}</p>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogVisibleTwo = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import { studentGetAllCanScholarship, studentApplyScholarship } from '@/api/scholarshipManagement'
+import { uploadPicture } from '@/api/studentStatusInformation'
 export default {
   name: 'ScholarshipApplication',
   data() {
     return {
+      fileList: [],
       oneData: [{
         name: '王小明',
         sex: '男',
@@ -192,8 +203,8 @@ export default {
         sfz: '4304821995022101111',
         xz: '3'
       }],
-      currentPage: '',
       dialogVisible: false,
+      dialogVisibleTwo: false,
       tableDataTea: [
         {
           xh: '1',
@@ -276,17 +287,76 @@ export default {
           psfs: '其他'
         }
       ],
-      myform: {},
-      input: ''
+      applyRequirements: '',
+      myform: {
+        reason: ''
+      },
+      input: '',
+      currentPage: 1,
+      pageSize: 5,
+      applyId: ''
     }
+  },
+  mounted() {
+    this.getAllData()
   },
   methods: {
     selectCourse: function(row) {
-      console.log(row.kcmc)
+      // console.log(row.kcmc)
+      this.applyRequirements = row.apply_requirements
+      this.dialogVisibleTwo = true
+    },
+    handleSizeChange(val) {
+      this.currentPage = 1
+      this.pageSize = val
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val
+    },
+    getAllData: function() {
+      studentGetAllCanScholarship().then(response => {
+        console.log('测试学生获取所有能申请的奖学金接口')
+        console.log(response.data)
+        this.tableDataTea = response.data.data
+      })
     },
     shenqing: function(row) {
       console.log(row)
+      this.applyId = row.id
       this.dialogVisible = true
+    },
+    uploadFiles: function(params) {
+      const formData = new FormData()
+      formData.append('file', params.file)
+      uploadPicture(formData).then(response => {
+        console.log('测试文件上传')
+        console.log(response)
+        this.fileList.push(response.data.data.fileUrl)
+      })
+    },
+    confirmApply: function() {
+      const prams = {
+        appendix: '',
+        applyReason: '',
+        scholarshipId: '',
+        stuUsername: ''
+      }
+      prams.appendix = this.fileList[0]
+      prams.applyReason = this.myform.reason
+      prams.scholarshipId = this.applyId
+      prams.stuUsername = '20150406'
+      console.log('测试申请参数')
+      console.log(prams)
+      studentApplyScholarship(prams).then(response => {
+        console.log('测试上传接口')
+        console.log(response.data)
+        this.$message({
+          message: '成功申请该奖学金',
+          type: 'success'
+        })
+        this.dialogVisible = false
+        this.myform.reason = ''
+      })
     }
   }
 }

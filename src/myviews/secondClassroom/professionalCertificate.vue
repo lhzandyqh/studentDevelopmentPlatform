@@ -15,33 +15,33 @@
           </div>
           <div class="card-container">
             <el-table
-              :data="tableData"
+              :data="tableData.slice((currentPage4-1)*pagesize,currentPage4*pagesize)"
               stripe
               style="width: 100%"
             >
               <el-table-column
-                prop="xh"
+                prop="id"
                 label="序号"
               />
               <el-table-column
-                prop="xm"
+                prop="certName"
                 label="职业证书名称"
               />
               <el-table-column
-                prop="ffxq"
+                prop="certType"
                 label="职业证书类别"
                 width="300"
               />
               <el-table-column
-                prop="ffbz"
+                prop="obtainDate"
                 label="获得日期"
               />
               <el-table-column
-                prop="ffzt"
+                prop="uploadDate"
                 label="上传日期"
               />
               <el-table-column
-                prop="zt"
+                prop="auditStatus"
                 label="审核状态"
               />
               <el-table-column
@@ -55,7 +55,7 @@
             </el-table>
             <div class="fenye">
               <el-pagination
-                :current-page="currentPage"
+                :current-page="currentPage4"
                 :page-sizes="[5, 10, 20, 30]"
                 :page-size="10"
                 style="margin-top:20px;"
@@ -79,21 +79,29 @@
         <el-row>
           <el-form ref="ktxmform" :model="myform" label-width="200px">
             <el-form-item label="职业证书名称">
-              <el-input v-model="myform.name" placeholder="请输入职业证书名称" />
+              <el-input v-model="myform.certName" placeholder="请输入职业证书名称" />
             </el-form-item>
             <el-form-item label="职业证书编号">
-              <el-input v-model="myform.xueyuan" placeholder="请输入职业证书编号" />
+              <el-input v-model="myform.certNo" placeholder="请输入职业证书编号" />
             </el-form-item>
             <el-form-item label="职业证书类别">
-              <el-input v-model="myform.num" placeholder="请输入职业证书类别" />
+              <el-input v-model="myform.certType" placeholder="请输入职业证书类别" />
             </el-form-item>
             <el-form-item label="获得日期">
-              <el-input v-model="myform.phone" placeholder="请输入获得日期" />
+              <!--              <el-input v-model="myform.obtainDate" placeholder="请输入获得日期" />-->
+              <el-date-picker
+                v-model="myform.obtainDate"
+                type="date"
+                placeholder="选择日期"
+                format="yyyy-MM-dd"
+                value-format="yyyy-MM-dd"
+              />
             </el-form-item>
             <el-form-item label="附件上传">
               <el-upload
                 class="upload-demo"
                 action="https://jsonplaceholder.typicode.com/posts/"
+                :http-request="uploadPic"
                 :on-preview="handlePreview"
                 :on-remove="handleRemove"
                 :before-remove="beforeRemove"
@@ -110,7 +118,23 @@
         </el-row>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogVisible = false">上 传</el-button>
+          <el-button type="primary" @click="beginUploadCert">上 传</el-button>
+        </span>
+      </el-dialog>
+      <el-dialog
+        title="职业证书详情"
+        :visible.sync="dialogVisibleTwo"
+        width="50%"
+        :before-close="handleClose"
+      >
+        <el-carousel indicator-position="outside" height="600px">
+          <el-carousel-item v-for="(src,item) in imgs" :key="item">
+            <img :src="src" style="max-width: 100%;max-height: 100%;display: block; margin: 0 auto;">
+          </el-carousel-item>
+        </el-carousel>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisibleTwo = false">取 消</el-button>
+          <el-button type="primary" @click="dialogVisibleTwo = false">确 定</el-button>
         </span>
       </el-dialog>
     </div>
@@ -118,70 +142,125 @@
 </template>
 
 <script>
+import { getAllCertInfo, uploadCert, uploadPicture } from '@/api/studentStatusInformation'
 export default {
   name: 'ProfessionalCertificate',
   data() {
     return {
-      tableData: [
-        {
-          xh: '1',
-          xm: '护士资格证',
-          zt: '审核通过',
-          ffxq: '执业护士',
-          ffbz: '2020-10-01',
-          ffzt: '2020-08-12'
-        },
-        {
-          xh: '2',
-          xm: '初级护师',
-          ffxq: '执业护师',
-          zt: '审核通过',
-          ffbz: '2020-08-25',
-          ffzt: '2020-07-12'
-        },
-        {
-          xh: '3',
-          xm: '养老护理员职业资格证',
-          ffxq: '执业护理员',
-          zt: '审核通过',
-          ffbz: '2020-07-01',
-          ffzt: '2020-04-12'
-        },
-        {
-          xh: '4',
-          xm: '育婴师职业资格证',
-          ffxq: '执业育婴师',
-          zt: '审核通过',
-          ffbz: '2020-05-19',
-          ffzt: '2020-03-15'
-
-        },
-        {
-          xh: '5',
-          xm: '执业药师资格证',
-          ffxq: '执业药师',
-          zt: '审核通过',
-          ffbz: '2020-07-14',
-          ffzt: '2020-02-22'
-
-        },
-        {
-          xh: '6',
-          xm: '理疗师证',
-          ffxq: '执业理疗师',
-          zt: '审核通过',
-          ffbz: '2020-05-01',
-          ffzt: '2020-01-12'
-
-        }
-      ],
-      myform: {},
-      dialogVisible: false
+      pagesize: '10',
+      currentPage4: 1,
+      fileList: [],
+      imgs: [],
+      tableData: [],
+      myform: {
+        certName: '',
+        certNo: '',
+        certType: '',
+        obtainDate: '',
+        stuUsername: localStorage.getItem('jwt'),
+        certClass: '职业证书',
+        appdedix: ''
+      },
+      picUrl: [],
+      dialogVisible: false,
+      dialogVisibleTwo: false
     }
   },
+  mounted() {
+    this.getAllCert()
+  },
   methods: {
+    uploadPic: function(params) {
+      const formData = new FormData()
+      formData.append('file', params.file)
+      uploadPicture(formData).then(response => {
+        console.log('测试图片上传')
+        console.log(response)
+        this.picUrl.push(response.data.data.fileUrl)
+        console.log(this.picUrl)
+      })
+    },
+    beginUploadCert: function() {
+      var pingjie = ''
+      for (let i = 0; i < this.picUrl.length; i++) {
+        pingjie = pingjie + this.picUrl[i]
+        if (this.picUrl[i + 1] !== 'undefined') {
+          pingjie = pingjie + ','
+        } else {
+          break
+        }
+      }
+      console.log('测试拼接的图片数组')
+      console.log(pingjie)
+      this.myform.appdedix = pingjie
+      console.log('测试myform')
+      console.log(this.myform)
+      var flag = true
+      for (const i in this.myform) {
+        if (this.myform[i] === '') {
+          flag = false
+        }
+      }
+      if (flag) {
+        this.dialogVisible = false
+        const sProfessionCertInfoDto = this.myform
+        uploadCert(sProfessionCertInfoDto).then(response => {
+          console.log('测试上传职业证书')
+          console.log(response.data)
+          this.getAllCert()
+          this.myform.certNo = ''
+          this.myform.certName = ''
+          this.myform.certType = ''
+          this.myform.obtainDate = ''
+          this.myform.appdedix = ''
+          this.$message({
+            message: '提交成功',
+            type: 'success'
+          })
+        })
+      } else {
+        this.$message({
+          message: '职业证书信息未录入完整',
+          type: 'warning'
+        })
+      }
+      // this.dialogVisible = false
+      // const sProfessionCertInfoDto = this.myform
+      // var pingjie = ''
+      // for (let i = 0; i < this.picUrl.length; i++) {
+      //   pingjie = pingjie + this.picUrl[i]
+      //   if (this.picUrl[i + 1] !== 'undefined') {
+      //     pingjie = pingjie + ','
+      //   } else {
+      //     break
+      //   }
+      // }
+      // console.log('测试拼接的图片数组')
+      // console.log(pingjie)
+      // this.myform.appdedix = pingjie
+      // uploadCert(sProfessionCertInfoDto).then(response => {
+      //   console.log('测试上传职业证书')
+      //   console.log(response.data)
+      //   this.getAllCert()
+      // })
+    },
+    getAllCert: function() {
+      const prams = {
+        username: localStorage.getItem('jwt'),
+        certClass: '职业证书'
+      }
+      getAllCertInfo(prams).then(response => {
+        console.log('测试获取所有的职业证书')
+        console.log(response.data)
+        this.tableData = response.data.data
+      })
+    },
     getDetail: function(row) {
       console.log(row)
+      this.dialogVisibleTwo = true
+      this.imgs = row.appdedix
+      console.log('测试imgs')
+      console.log(this.imgs)
     },
     openDialog: function() {
       this.dialogVisible = true
@@ -204,6 +283,14 @@ export default {
     },
     beforeRemove(file, fileList) {
       return this.$confirm(`确定移除 ${file.name}？`)
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`)
+      this.pagesize = val
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`)
+      this.currentPage4 = val
     }
   }
 }

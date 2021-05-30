@@ -68,7 +68,7 @@
       </el-table>
       <div style="margin-top: 20px">
         <el-button @click="toggleSelection()">取消选择</el-button>
-        <el-button type="primary">导出我的课表</el-button>
+        <el-button type="primary">导出我获得的奖助</el-button>
       </div>
       <div class="fenye">
         <el-pagination

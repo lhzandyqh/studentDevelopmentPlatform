@@ -7,7 +7,7 @@
           <img style="width: 100px;height: 100px;margin-left: 20px" src="../../assets/icon/jiangxuej.png">
           <div class="shuzi">
             <div>
-              <span style="color: #7c7c7c">奖学金获得次数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">8</span>
+              <span style="color: #7c7c7c">奖学金获得次数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">0</span>
             </div>
           </div>
         </div>
@@ -15,7 +15,7 @@
           <img style="width: 80px;height: 80px;margin-left: 20px;margin-top: 10px" src="../../assets/icon/zhengshu.png">
           <div class="shuzi">
             <div>
-              <span style="color: #7c7c7c">职业证书获取数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">5</span>
+              <span style="color: #7c7c7c">职业证书获取数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">0</span>
             </div>
           </div>
         </div>
@@ -23,7 +23,7 @@
           <img style="width: 80px;height: 80px;margin-left: 20px;margin-top: 10px" src="../../assets/icon/renwu.png">
           <div class="shuzi">
             <div>
-              <span style="color: #7c7c7c">学涯规划完成数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">25</span>
+              <span style="color: #7c7c7c">学涯规划完成数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">0</span>
             </div>
           </div>
         </div>
@@ -31,7 +31,7 @@
           <img style="width: 80px;height: 80px;margin-left: 20px;margin-top: 10px" src="../../assets/icon/huodong.png">
           <div class="shuzi">
             <div>
-              <span style="color: #7c7c7c">校园活动参与数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">13</span>
+              <span style="color: #7c7c7c">校园活动参与数</span><span style="font-weight: bolder;font-size: 20px;color: #33cfe8">0</span>
             </div>
           </div>
         </div>
@@ -61,38 +61,37 @@
             </div>
             <div class="card-container">
               <el-table
-                :data="tableData"
+                :data="tableData.slice((currentPage4-1)*pagesize,currentPage4*pagesize)"
                 stripe
                 style="width: 100%"
               >
                 <el-table-column
-                  prop="xh"
+                  prop="id"
                   label="序号"
                 />
                 <el-table-column
-                  prop="xm"
+                  prop="planingName"
                   label="规划名称"
                 />
                 <el-table-column
-                  prop="ffxq"
                   label="规划级别"
                 >
                   <template slot-scope="scope">
-                    <el-tag v-if="scope.row.ffxq === '中级'" type="success">中级</el-tag>
-                    <el-tag v-if="scope.row.ffxq === '低级'" type="info">低级</el-tag>
-                    <el-tag v-if="scope.row.ffxq === '高级'" type="warning">高级</el-tag>
+                    <el-tag v-if="scope.row.planingLevel === '中级'" type="success">中级</el-tag>
+                    <el-tag v-if="scope.row.planingLevel === '低级'" type="info">低级</el-tag>
+                    <el-tag v-if="scope.row.planingLevel === '高级'" type="warning">高级</el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="ffbz"
+                  prop="planingDate"
                   label="规划日期"
                 />
                 <el-table-column
-                  prop="ffzt"
+                  prop="closingDate"
                   label="截止日期"
                 />
                 <el-table-column
-                  prop="zt"
+                  prop="planingStatus"
                   label="规划状态"
                 />
                 <el-table-column
@@ -100,15 +99,17 @@
                   label="操作"
                 >
                   <template slot-scope="scope">
-                    <el-button type="text" @click="getDetail(scope.row)">取消规划</el-button>
-                    <el-button type="text" @click="getDetail(scope.row)">规划完成</el-button>
+                    <el-button v-show="scope.row.planingStatus ==='进行中'" type="text" @click="cancelPlan(scope.row)">取消规划</el-button>
+                    <el-button v-show="scope.row.planingStatus ==='已完成'||scope.row.planingStatus ==='已取消'" type="text" disabled="">规划取消</el-button>
+                    <el-button v-show="scope.row.planingStatus ==='进行中'" type="text" @click="completePlan(scope.row)">规划完成</el-button>
+                    <el-button v-show="scope.row.planingStatus ==='已取消'||scope.row.planingStatus ==='已完成'" type="text" disabled="">规划完成</el-button>
                     <el-button type="text" @click="getDetail(scope.row)">查看</el-button>
                   </template>
                 </el-table-column>
               </el-table>
               <div class="fenye">
                 <el-pagination
-                  :current-page="currentPage"
+                  :current-page="currentPage4"
                   :page-sizes="[5, 10, 20, 30]"
                   :page-size="10"
                   style="margin-top:20px;"
@@ -132,32 +133,43 @@
           <el-row>
             <el-form ref="ktxmform" :model="myform" label-width="200px">
               <el-form-item label="规划名称">
-                <el-input v-model="myform.name" placeholder="请输入规划名称" />
+                <el-input v-model="myform.planingName" placeholder="请输入规划名称" />
               </el-form-item>
               <el-form-item label="规划内容">
                 <el-input
-                  v-model="myform.textarea"
+                  v-model="myform.planingContent"
                   type="textarea"
                   :rows="6"
                   placeholder="请输入规划内容"
                 />
               </el-form-item>
               <el-form-item label="规划级别">
-                <el-select v-model="myform.jibie" placeholder="请选择规划学期">
-                  <el-option label="高级" value="大一" />
-                  <el-option label="中级" value="大二" />
-                  <el-option label="低级" value="大三" />
+                <el-select v-model="myform.planingLevel" placeholder="请选择规划级别">
+                  <el-option label="高级" value="高级" />
+                  <el-option label="中级" value="中级" />
+                  <el-option label="低级" value="低级" />
                 </el-select>
+              </el-form-item>
+              <el-form-item label="规划开始日期">
+                <el-date-picker
+                  v-model="myform.planingDate"
+                  type="date"
+                  format="yyyy-MM-dd"
+                  value-format="yyyy-MM-dd"
+                  placeholder="选择日期"
+                />
               </el-form-item>
               <el-form-item label="规划截止日期">
                 <el-date-picker
-                  v-model="myform.date"
+                  v-model="myform.closingDate"
                   type="date"
+                  format="yyyy-MM-dd"
+                  value-format="yyyy-MM-dd"
                   placeholder="选择日期"
                 />
               </el-form-item>
               <el-form-item label="规划学期">
-                <el-select v-model="myform.xuenian" placeholder="请选择规划学期">
+                <el-select v-model="myform.planingTerm" placeholder="请选择规划学期">
                   <el-option label="大一" value="大一" />
                   <el-option label="大二" value="大二" />
                   <el-option label="大三" value="大三" />
@@ -167,7 +179,25 @@
           </el-row>
           <span slot="footer" class="dialog-footer">
             <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="dialogVisible = false">新 建</el-button>
+            <el-button type="primary" @click="addPlan">新 建</el-button>
+          </span>
+        </el-dialog>
+      </div>
+      <div>
+        <el-dialog
+          title="规划详情"
+          :visible.sync="dialogVisibleTwo"
+          width="30%"
+          :before-close="handleClose"
+        >
+          <el-row>
+            <div>
+              <p>{{ detailContent }}</p>
+            </div>
+          </el-row>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisibleTwo = false">取 消</el-button>
+            <el-button type="primary" @click="dialogVisibleTwo = false">确 定</el-button>
           </span>
         </el-dialog>
       </div>
@@ -176,62 +206,46 @@
 </template>
 
 <script>
+import { getAllStudentPlan, addNewPlan, changePlanStatus } from '@/api/studentStatusInformation'
 export default {
   name: 'Index',
   data() {
     return {
+      detailContent: '',
+      pagesize: '10',
+      currentPage4: 1,
       xueqi: '',
-      tableData: [
-        {
-          xh: '1',
-          xm: '获得国家奖学金',
-          zt: '已完成',
-          ffxq: '高级',
-          ffbz: '2020-10-01',
-          ffzt: '2020-08-12'
-        },
-        {
-          xh: '2',
-          xm: '考取护士资格证',
-          ffxq: '高级',
-          zt: '已完成',
-          ffbz: '2020-08-25',
-          ffzt: '2020-07-12'
-        },
-        {
-          xh: '3',
-          xm: '至少参加三次校园集体活动',
-          ffxq: '低级',
-          zt: '进行中',
-          ffbz: '2020-07-01',
-          ffzt: '2020-04-12'
-        },
-        {
-          xh: '4',
-          xm: '通过英语4级',
-          ffxq: '中级',
-          zt: '进行中',
-          ffbz: '2020-05-19',
-          ffzt: '2020-03-15'
-
-        },
-        {
-          xh: '5',
-          xm: '参加一次实习实践',
-          ffxq: '低级',
-          zt: '进行中',
-          ffbz: '2020-07-14',
-          ffzt: '2020-02-22'
-
-        }
-      ],
-      myform: {},
-      dialogVisible: false
+      tableData: [],
+      myform: {
+        stuUsername: localStorage.getItem('jwt'),
+        planingContent: '',
+        planingLevel: '',
+        planingDate: '',
+        closingDate: '',
+        planingTerm: '',
+        planingName: '',
+        planingStatus: '进行中'
+      },
+      dialogVisible: false,
+      dialogVisibleTwo: false
     }
   },
+  mounted() {
+    this.getAllPlan()
+  },
   methods: {
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`)
+      this.pagesize = val
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`)
+      this.currentPage4 = val
+    },
     getDetail: function(row) {
+      this.dialogVisibleTwo = true
       console.log(row)
+      this.detailContent = row.planingContent
     },
     openDialog: function() {
       this.dialogVisible = true
@@ -243,18 +257,87 @@ export default {
         })
         .catch(_ => {})
     },
-    handleRemove(file, fileList) {
-      console.log(file, fileList)
+    getAllPlan: function() {
+      const prams = {
+        // stuUsername: '20180305'
+        stuUsername: localStorage.getItem('jwt')
+      }
+      getAllStudentPlan(prams).then(response => {
+        console.log('测试获取所有的规划')
+        console.log(response.data)
+        this.tableData = response.data.data
+      })
     },
-    handlePreview(file) {
-      console.log(file)
+    addPlan: function() {
+      var flag = true
+      for (const i in this.myform) {
+        if (this.myform[i] === '') {
+          flag = false
+        }
+      }
+      if (flag) {
+        this.dialogVisible = false
+        addNewPlan(this.myform).then(response => {
+          console.log('测试添加规划')
+          console.log(response.data)
+          this.getAllPlan()
+          for (const i in this.myform) {
+            this.myform[i] = ''
+          }
+          this.$message({
+            message: '提交规划成功',
+            type: 'success'
+          })
+        })
+      } else {
+        this.$message({
+          message: '规划未填写完整',
+          type: 'warning'
+        })
+      }
+      // this.dialogVisible = false
+      // addNewPlan(this.myform).then(response => {
+      //   console.log('测试添加规划')
+      //   console.log(response.data)
+      //   this.getAllPlan()
+      // })
     },
-    handleExceed(files, fileList) {
-      this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
+    cancelPlan: function(row) {
+      console.log(row)
+      const prmas = {
+        id: row.id,
+        planStatus: '已取消'
+      }
+      changePlanStatus(prmas).then(response => {
+        console.log('测试修改规划状态')
+        console.log(response.data)
+        this.getAllPlan()
+      })
     },
-    beforeRemove(file, fileList) {
-      return this.$confirm(`确定移除 ${file.name}？`)
+    completePlan: function(row) {
+      console.log(row)
+      const prmas = {
+        id: row.id,
+        planStatus: '已完成'
+      }
+      changePlanStatus(prmas).then(response => {
+        console.log('测试修改规划状态')
+        console.log(response.data)
+        this.getAllPlan()
+      })
     }
+    // handleRemove(file, fileList) {
+    //   console.log(file, fileList)
+    // },
+    // handlePreview(file) {
+    //   console.log(file)
+    // },
+    // handleExceed(files, fileList) {
+    //   this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
+    // },
+    // beforeRemove(file, fileList) {
+    //   return this.$confirm(`确定移除 ${file.name}？`)
+    // }
   }
 }
 </script>

@@ -87,13 +87,13 @@
         <el-row>
           <el-form ref="ktxmform" :model="myform" label-width="200px">
             <el-form-item label="姓名">
-              <el-input v-model="myform.name" placeholder="请输入姓名" />
+              <el-input v-model="myform.studentName" placeholder="请输入姓名" />
             </el-form-item>
             <el-form-item label="所在学院">
-              <el-input v-model="myform.xueyuan" placeholder="请输入所在学院" />
+              <el-input v-model="myform.college" placeholder="请输入所在学院" />
             </el-form-item>
             <el-form-item label="银行卡号">
-              <el-input v-model="myform.num" placeholder="请输入银行卡号" />
+              <el-input v-model="myform.bankCard" placeholder="请输入银行卡号" />
             </el-form-item>
             <el-form-item label="联系电话">
               <el-input v-model="myform.phone" placeholder="请输入联系电话" />
@@ -102,6 +102,7 @@
               <el-upload
                 class="upload-demo"
                 action="https://jsonplaceholder.typicode.com/posts/"
+                :http-request="uploadFiles"
                 :on-preview="handlePreview"
                 :on-remove="handleRemove"
                 :before-remove="beforeRemove"
@@ -118,7 +119,7 @@
         </el-row>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogVisible = false">提 交 申 请</el-button>
+          <el-button type="primary" @click="confirmApply">提 交 申 请</el-button>
         </span>
       </el-dialog>
     </div>
@@ -126,6 +127,8 @@
 </template>
 
 <script>
+import { studentApplyHelpMoney } from '@/api/scholarshipManagement'
+import { uploadPicture } from '@/api/studentStatusInformation'
 export default {
   name: 'GrantApplication',
   data() {
@@ -180,8 +183,17 @@ export default {
           byrq: '2021-07-01'
         }
       ],
-      myform: {},
-      dialogVisible: false
+      myform: {
+        studentName: '',
+        college: '',
+        bankCard: '',
+        phone: '',
+        appendix: '',
+        stuUsername: '',
+        applyReason: ''
+      },
+      dialogVisible: false,
+      fileList: []
     }
   },
   methods: {
@@ -206,6 +218,37 @@ export default {
     },
     beforeRemove(file, fileList) {
       return this.$confirm(`确定移除 ${file.name}？`)
+    },
+    uploadFiles: function(params) {
+      const formData = new FormData()
+      formData.append('file', params.file)
+      uploadPicture(formData).then(response => {
+        console.log('测试文件上传')
+        console.log(response)
+        this.fileList.push(response.data.data.fileUrl)
+      })
+    },
+    confirmApply: function() {
+      this.myform.appendix = this.fileList[0]
+      this.myform.stuUsername = '20160203'
+      console.log('测试助学金申请参数')
+      console.log(this.myform)
+      studentApplyHelpMoney(this.myform).then(response => {
+        console.log('测试助学金申请接口')
+        console.log(response.data)
+        this.$message({
+          message: '申请助学金成功',
+          type: 'success'
+        })
+        this.myform.stuUsername = ''
+        this.myform.appendix = ''
+        this.myform.applyReason = ''
+        this.myform.bankCard = ''
+        this.myform.phone = ''
+        this.myform.college = ''
+        this.myform.stuUsername = ''
+        this.dialogVisible = false
+      })
     }
   }
 }

@@ -8,20 +8,20 @@
               <el-col :span="6">
                 <div class="single">
                   <div class="biaoqian">
-                    <span style="font-weight: bolder">所在学院：</span>
+                    <span style="font-weight: bolder">所在系部：</span>
                   </div>
                   <div class="content">
-                    <span>护理学院</span>
+                    <span>{{ userData.department }}</span>
                   </div>
                 </div>
               </el-col>
               <el-col :span="6">
                 <div class="single">
                   <div class="biaoqian">
-                    <span style="font-weight: bolder">学号：</span>
+                    <span style="font-weight: bolder">学&#8195;&#8195;号：</span>
                   </div>
                   <div class="content">
-                    <span>2018Z083425</span>
+                    <span>{{ userData.studentNumber }}</span>
                   </div>
                 </div>
               </el-col>
@@ -31,7 +31,7 @@
                     <span style="font-weight: bolder">姓&#8195;&#8195;名：</span>
                   </div>
                   <div class="content">
-                    <span>王小明</span>
+                    <span>{{ userData.studentName }}</span>
                   </div>
                 </div>
               </el-col>
@@ -41,7 +41,7 @@
                     <span style="font-weight: bolder">学生状态：</span>
                   </div>
                   <div class="content">
-                    <span>在校</span>
+                    <span>{{ userData.stuStatus }}</span>
                   </div>
                 </div>
               </el-col>
@@ -50,10 +50,10 @@
               <el-col :span="6">
                 <div class="single">
                   <div class="biaoqian">
-                    <span style="font-weight: bolder">证件号码：</span>
+                    <span style="font-weight: bolder">身份证号：</span>
                   </div>
                   <div class="content">
-                    <span>430425199508110001</span>
+                    <span>{{ userData.idCard }}</span>
                   </div>
                 </div>
               </el-col>
@@ -63,17 +63,17 @@
                     <span style="font-weight: bolder">性&#8195;&#8195;别：</span>
                   </div>
                   <div class="content">
-                    <span>男</span>
+                    <span>{{ userData.studentSex }}</span>
                   </div>
                 </div>
               </el-col>
               <el-col :span="6">
                 <div class="single">
                   <div class="biaoqian">
-                    <span style="font-weight: bolder">录取类型：</span>
+                    <span style="font-weight: bolder">录取方式：</span>
                   </div>
                   <div class="content">
-                    <span>非定向</span>
+                    <span>{{ userData.studyWay }}</span>
                   </div>
                 </div>
               </el-col>
@@ -83,7 +83,7 @@
                     <span style="font-weight: bolder">生源地区：</span>
                   </div>
                   <div class="content">
-                    <span>北京市海淀区</span>
+                    <span>{{ userData.placeOfBorn }}</span>
                   </div>
                 </div>
               </el-col>
@@ -221,16 +221,32 @@
 </template>
 
 <script>
+import { getStudentStatusInformationByNumber } from '@/api/studentStatusInformation'
 export default {
   name: 'StatusChanges',
   data() {
     return {
       tableData: [],
       myform: {},
-      dialogVisible: false
+      dialogVisible: false,
+      userData: []
     }
   },
+  mounted() {
+    this.getStudentAllData()
+  },
   methods: {
+    getStudentAllData: function() {
+      const prams = {
+        username: '20180305'
+      }
+      getStudentStatusInformationByNumber(prams).then(response => {
+        console.log('学籍变动测试获取学籍信息')
+        console.log(response.data.data)
+        this.userData = response.data.data
+        console.log(this.userData)
+      })
+    },
     openDialog: function() {
       this.dialogVisible = true
     },
